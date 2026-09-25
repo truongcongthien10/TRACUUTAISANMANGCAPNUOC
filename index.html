@@ -10,18 +10,20 @@
         body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .header-bg { background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; padding: 2rem 0; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; }
-        .asset-img { max-height: 350px; object-fit: cover; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        .asset-img-container { min-height: 280px; display: flex; align-items: center; justify-content: center; background: #e9ecef; border-radius: 8px; border: 1px solid #dee2e6; overflow: hidden; }
+        .asset-img { max-height: 320px; object-fit: contain; width: 100%; border-radius: 8px; }
         .spec-item { padding: 10px 0; border-bottom: 1px dashed #dee2e6; }
         .spec-item:last-child { border-bottom: none; }
         .badge-custom { font-size: 0.9rem; padding: 6px 12px; }
+        .table-spec th { background-color: #f1f3f5; }
     </style>
 </head>
 <body>
 
     <div class="header-bg text-center">
         <div class="container">
-            <h1 class="display-5 fw-bold">🚰 Tra Cứu Tài Sản Đường Ống & Phụ Kiện Cấp Nước</h1>
-            <p class="lead mb-0">Hệ thống thông số kỹ thuật, cấp ống, đường kính và hình ảnh các hãng: Ponta Mousson, Xing Xing, Europipe, Tiền Phong, Bình Minh</p>
+            <h1 class="display-5 fw-bold">🚰 Tra Cứu Tài Sản Mạng Lưới Cấp Nước</h1>
+            <p class="lead mb-0">Hệ thống thông số kỹ thuật, bảng đường kính & hình ảnh từ các nhà sản xuất: PAM, Xing Xing, Europipe, Tiền Phong, Bình Minh</p>
         </div>
     </div>
 
@@ -33,7 +35,7 @@
                     <label for="brandSelect" class="form-label fw-bold text-primary">🏢 Lựa chọn Hãng sản xuất / Thương hiệu:</label>
                     <select id="brandSelect" class="form-select form-select-lg" onchange="updateAssetInfo()">
                         <option value="Ponta Mousson">Ponta Mousson (PAM - Pháp / Gang dẻo DIP)</option>
-                        <option value="Xing Xing">Xing Xing (Trung Quốc / Gang dẻo & Thép)</option>
+                        <option value="Xing Xing">Xing Xing (Trung Quốc / Gang dẻo)</option>
                         <option value="Europipe">Europipe (Thụy Sĩ / Việt Nam - Nhựa HDPE & uPVC)</option>
                         <option value="Tiền Phong">Nhựa Tiền Phong (Việt Nam - uPVC / HDPE / PPR)</option>
                         <option value="Bình Minh">Nhựa Bình Minh (Việt Nam - uPVC / HDPE)</option>
@@ -70,349 +72,217 @@
             <div class="row align-items-center mt-3">
                 <div class="col-lg-7">
                     <div class="spec-item"><strong>Tên hiệu / Model:</strong> <span id="astName" class="badge bg-success badge-custom ms-2">--</span></div>
-                    <div class="spec-item"><strong>Danh mục đường kính (DN/OD):</strong> <p id="astSize" class="text-dark fw-semibold mt-1 mb-0">--</p></div>
-                    <div class="spec-item"><strong>Phân cấp ống / Cấp áp lực (Class / PN):</strong> <span id="astPressure" class="text-primary fw-bold">--</span></div>
-                    <div class="spec-item"><strong>Thông số kỹ thuật nhà sản xuất:</strong> <p id="astSpecs" class="text-dark mt-1 mb-0">--</p></div>
-                    <div class="spec-item"><strong>Vật liệu cấu tạo & Bảo vệ:</strong> <span id="astMaterial" class="text-dark">--</span></div>
+                    <div class="spec-item"><strong>Bảng chi tiết đường kính & Cấp áp lực:</strong> 
+                        <div id="astSizeTable" class="mt-2">--</div>
+                    </div>
+                    <div class="spec-item"><strong>Thông số kỹ thuật sản xuất:</strong> <p id="astSpecs" class="text-dark mt-1 mb-0">--</p></div>
+                    <div class="spec-item"><strong>Vật liệu cấu tạo & Lớp bảo vệ:</strong> <span id="astMaterial" class="text-dark">--</span></div>
                     <div class="spec-item"><strong>Mô tả chi tiết & Ứng dụng:</strong> <p id="astDesc" class="mt-1 mb-0 text-muted">--</p></div>
                 </div>
                 <div class="col-lg-5 text-center mt-4 mt-lg-0">
-                    <img id="astImg" src="" alt="Hình ảnh tài sản" class="asset-img img-fluid shadow-sm">
-                    <p id="imgCaption" class="text-muted small mt-2 fst-italic">Hình ảnh thiết bị thực tế</p>
+                    <div class="asset-img-container shadow-sm">
+                        <img id="astImg" src="" alt="Hình ảnh tài sản" class="asset-img" onerror="handleImageError(this)">
+                    </div>
+                    <p id="imgCaption" class="text-muted small mt-2 fst-italic">Hình ảnh trực quan sản phẩm từ nhà sản xuất</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cơ sở dữ liệu JavaScript chi tiết cho các hãng -->
+    <!-- Cơ sở dữ liệu JavaScript đính kèm link sản xuất và hình ảnh dự phòng -->
     <script>
+        // Sơ đồ SVG làm hình ảnh dự phòng chuẩn kỹ thuật khi link NSX bị chặn
+        const SVG_FALLBACK = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23e9ecef'/><circle cx='200' cy='130' r='60' stroke='%230d6efd' stroke-width='8' fill='none'/><path d='M140 130 L260 130 M200 70 L200 190' stroke='%230d6efd' stroke-width='6'/><text x='50%' y='230' font-family='sans-serif' font-size='16' fill='%236c757d' text-anchor='middle'>Sơ đồ kỹ thuật thiết bị cấp nước</text></svg>";
+
         const assetDatabase = {
             "Ponta Mousson": {
                 "Đường ống chính": {
-                    name: "Ống gang dẻo PAM Natural / Blutop / Hydroclass (DIP)",
-                    size: "DN60, DN80, DN100, DN125, DN150, DN200, DN250, DN300, DN350, DN400, DN450, DN500, DN600, DN700, DN800, DN900, DN1000, DN1200, DN1400, DN1600, DN1800, DN2000",
-                    pressure: "Cấp áp lực Class C25, C30, C40, C100 (PN10, PN16, PN25, PN40)",
-                    specs: "• Chiều dài tiêu chuẩn: 5.5m - 6.0m/cây.<br>• Kiểu khớp nối: Socket trơn Tyton (Joint Tyton), Khớp khóa tự ngàm (PAM Ve), Mặt bích đúc liền.<br>• Hệ số nhám Hazen-Williams: C = 130 - 140.",
-                    material: "Gang dẻo (Ductile Iron). Lớp lót trong bằng vữa xi măng chịu phèn (Blast furnace slag cement). Lớp ngoài phủ hợp kim Kẽm-Nhôm (BioZinalium 400g/m²) + lớp sơn Epoxy màu xanh lá/xanh dương.",
-                    desc: "Tài sản ống gang chịu lực va đập vượt trội, tuổi thọ trên 100 năm. Chuyên dùng cho các tuyến ống truyền tải nước sạch chính đi dưới lòng đường giao thông có tải trọng lớn.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Ductile_iron_pipe_staked.jpg/800px-Ductile_iron_pipe_staked.jpg"
+                    name: "Ống gang dẻo PAM Natural / Hydroclass / Blutop (DIP)",
+                    sizeTable: `<table class="table table-sm table-bordered table-striped align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Dải DN (mm)</th><th>Cấp ống / Class</th><th>Chiều dài</th><th>Khớp nối</th></tr></thead>
+                        <tbody>
+                            <tr><td>DN60 - DN125</td><td>Class C100 / PN40</td><td>5.5m - 6.0m</td><td>Joint Tyton / PAM Ve</td></tr>
+                            <tr><td>DN150 - DN600</td><td>Class C40 / C30 (PN25/PN16)</td><td>6.0m</td><td>Socket Tyton / Mặt bích</td></tr>
+                            <tr><td>DN700 - DN2000</td><td>Class C25 / C30 (PN10/PN16)</td><td>6.0m - 7.0m</td><td>Mặt bích đúc / Khớp khóa</td></tr>
+                        </tbody>
+                    </table>`,
+                    specs: "• Tiêu chuẩn: ISO 2531 / BS EN 545.<br>• Hệ số Hazen-Williams: C = 130 - 140.<br>• Lớp lót trong: Vữa xi măng chịu phèn (Blast furnace slag cement).",
+                    material: "Gang dẻo (Ductile Iron) phủ kẽm-nhôm BioZinalium 400g/m² + sơn phủ Epoxy xanh.",
+                    desc: "Tài sản đường ống gang dẻo truyền tải nước sạch chính chịu va đập và tải trọng động rất cao.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/hydroclass_pipe.png"
                 },
                 "Van cổng": {
-                    name: "Euro 20 / Euro 24 (Van cổng ty chìm bọc cao su)",
-                    size: "DN50, DN65, DN80, DN100, DN125, DN150, DN200, DN250, DN300, DN400, DN500, DN600",
-                    pressure: "PN10 / PN16 / PN25",
-                    specs: "• Tiêu chuẩn thiết kế: BS EN 1074-2 / ISO 7259.<br>• Khoảng cách 2 bích theo tiêu chuẩn EN 558 series 14 (F4) hoặc series 15 (F5).",
-                    material: "Thân & nắp van bằng gang dẻo EN-GJS-400-15, lá van bọc cao su EPDM, ty van bằng Inox AISI 420.",
-                    desc: "Đóng mở kín 100%, chống kẹt rác, độ bền cao trên tuyến ống gang dẻo cấp nước chính.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gate_valve.jpg/600px-Gate_valve.jpg"
+                    name: "Euro 20 / Euro 24 (Van cổng ty chìm PAM)",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Đường kính</th><th>Áp lực PN</th><th>Chiều dài F4/F5</th></tr></thead>
+                        <tbody><tr><td>DN50 - DN600</td><td>PN10 / PN16 / PN25</td><td>BS EN 558 series 14 / 15</td></tr></tbody>
+                    </table>`,
+                    specs: "• Thân gang dẻo EN-GJS-400-15, ty van Inox AISI 420.<br>• Lá van bọc cao su EPDM 100% kín khít.",
+                    material: "Thân gang dẻo phủ Epoxy 250 µm.",
+                    desc: "Van đóng mở kín khít tuyệt đối trên mạng lưới ống gang.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/euro_20_gate_valve.png"
                 },
                 "Van bướm": {
-                    name: "Eurostop / Klipse (Van bướm mặt bích đôi lệch tâm)",
-                    size: "DN150 - DN2000",
-                    pressure: "PN10 / PN16 / PN25",
-                    specs: "• Vận hành: Hộp giảm tốc tay quay vô-lăng hoặc tích hợp bộ truyền động điện (AUMA).<br>• Tiêu chuẩn mặt bích: EN 1092-2.",
-                    material: "Thân gang dẻo, đĩa van dạng đĩa vồng bằng gang dẻo, vòng làm kín EPDM thay thế được.",
-                    desc: "Đóng mở nhẹ nhàng, chuyên dùng điều tiết lưu lượng cho tuyến ống đường kính lớn và trạm bơm.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Butterfly_valve.jpg/600px-Butterfly_valve.jpg"
+                    name: "Eurostop / Klipse (Van bướm lệch tâm PAM)",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Đường kính</th><th>Áp lực PN</th><th>Truyền động</th></tr></thead>
+                        <tbody><tr><td>DN150 - DN2000</td><td>PN10 / PN16 / PN25</td><td>Tay quay vô-lăng / Điện AUMA</td></tr></tbody>
+                    </table>`,
+                    specs: "• Đĩa van lệch tâm đôi giảm mô-men quay.<br>• Gioăng EPDM làm kín dạng tựa đàn hồi.",
+                    material: "Thân & đĩa gang dẻo phủ sơn tĩnh điện Epoxy.",
+                    desc: "Van điều tiết lưu lượng cỡ lớn cho trạm bơm và tuyến ống chính.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/eurostop_butterfly_valve.png"
                 },
                 "Van gai": {
-                    name: "PAM Tapping Saddle with Integrated Valve",
-                    size: "DN50 - DN300 (Đầu ra ren/bích DN25 - DN50)",
-                    pressure: "PN16",
-                    specs: "• Lắp trực tiếp lên ống gang dẻo đang mang áp lực (Hot tapping).",
-                    material: "Gang dẻo phủ Epoxy, bu-lông đai xiết Inox 304.",
-                    desc: "Đai khởi thủy van gai chuyên dùng cho công tác đấu nối mở rộng nhánh dịch vụ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pipe_saddle_clamp.jpg/600px-Pipe_saddle_clamp.jpg"
+                    name: "PAM Tapping Saddle Valve",
+                    sizeTable: "DN50 - DN300 (Đầu ra ren/bích DN25 - DN50)",
+                    specs: "Thao tác khoan gai trực tiếp trên ống gang đang mang áp.",
+                    material: "Gang dẻo kẹp bu-lông Inox 304.",
+                    desc: "Đai khởi thủy tích hợp van khóa lấy nước nhánh.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/tapping_saddle.png"
                 },
                 "Cút 90 độ": {
-                    name: "Cút gang dẻo PAM 90° (DIP 90° Bend)",
-                    size: "DN80 - DN1200",
-                    pressure: "PN10 / PN16 / PN25",
-                    specs: "• Kiểu nối: Bích - Bích hoặc 2 đầu Socket Tyton.",
-                    material: "Gang dẻo lót xi măng, sơn Epoxy ngoại thất.",
-                    desc: "Thay đổi hướng tuyến ống 90 độ tại các góc ngoặt trắc địa.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
+                    name: "Cút gang dẻo PAM 90°",
+                    sizeTable: "DN80 - DN1200 (PN10 / PN16 / PN25)",
+                    specs: "Nối bích hoặc 2 đầu Socket Tyton.",
+                    material: "Gang dẻo lót xi măng.",
+                    desc: "Cút đổi hướng vuông góc 90 độ.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/bend_90.png"
                 },
                 "Cút 45 độ": {
-                    name: "Cút gang dẻo PAM 45° (DIP 45° Bend)",
-                    size: "DN80 - DN1200",
-                    pressure: "PN10 / PN16 / PN25",
-                    specs: "• Kiểu nối: Bích - Bích / Khớp Tyton.",
+                    name: "Cút gang dẻo PAM 45°",
+                    sizeTable: "DN80 - DN1200 (PN10 / PN16 / PN25)",
+                    specs: "Chuyển hướng trắc địa 45 độ.",
                     material: "Gang dẻo tiêu chuẩn ISO 2531.",
-                    desc: "Giúp giảm tổn thất cột áp thủy lực so với cút 90 độ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
+                    desc: "Giảm tổn thất thủy lực.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/bend_45.png"
                 },
                 "Tê thuỷ lực": {
-                    name: "Tê gang dẻo PAM (DIP Tee - Equal & Reducing)",
-                    size: "DN80 - DN1200 (Ngả rẽ DN50 - DN1200)",
-                    pressure: "PN10 / PN16 / PN25",
-                    specs: "• Tê đều hoặc Tê thu 3 đầu bích / 3 đầu socket.",
+                    name: "Tê gang dẻo PAM (DIP Tee)",
+                    sizeTable: "DN80 - DN1200 (Thân & Nhánh rẽ)",
+                    specs: "Tê đều / Tê thu 3 đầu bích.",
                     material: "Gang dẻo bọc Epoxy.",
-                    desc: "Chia ngả mạng lưới đường ống truyền tải nước.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
+                    desc: "Phụ kiện chia 3 ngả mạng lưới.",
+                    img: "https://www.pamline.com/sites/pamline/files/styles/product_large/public/2021-03/tee_flanged.png"
                 }
             },
             "Xing Xing": {
                 "Đường ống chính": {
-                    name: "Ống gang dẻo XingXing DIP / Ống thép bọc Epoxy",
-                    size: "DN80, DN100, DN150, DN200, DN250, DN300, DN350, DN400, DN450, DN500, DN600, DN700, DN800",
-                    pressure: "Cấp Class K9, Class C30, Class C40 (PN10, PN16)",
-                    specs: "• Chiều dài tiêu chuẩn: 6.0m/cây.<br>• Mối nối: Socket Tyton ngàm cao su, mặt bích hàn tĩnh.<br>• Tiêu chuẩn sản xuất: ISO 2531 / EN 545.",
-                    material: "Gang dẻo/thép carbon. Lót vữa xi măng Portland bên trong, phủ sơn Epoxy chống ăn mòn dầy ≥ 70µm ngoài bề mặt.",
-                    desc: "Dòng ống gang xám/gang dẻo thương mại phổ biến cho các dự án cấp nước đô thị và khu công nghiệp.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Ductile_iron_pipe_staked.jpg/800px-Ductile_iron_pipe_staked.jpg"
+                    name: "Ống gang dẻo XingXing DIP Class K9 / C40",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Quy cách DN</th><th>Cấp Class</th><th>Áp lực</th><th>Mối nối</th></tr></thead>
+                        <tbody>
+                            <tr><td>DN80 - DN300</td><td>Class K9 / C40</td><td>PN16 / PN25</td><td>Socket Tyton / Bích</td></tr>
+                            <tr><td>DN350 - DN800</td><td>Class K9 / C30</td><td>PN10 / PN16</td><td>Socket Tyton / Bích</td></tr>
+                        </tbody>
+                    </table>`,
+                    specs: "• Tiêu chuẩn: ISO 2531 / EN 545.<br>• Chiều dài: 6.0m/cây.",
+                    material: "Gang dẻo lót vữa xi măng Portland trong lòng ống, phủ sơn kẽm + Epoxy ngoại thất.",
+                    desc: "Ống gang dẻo thương mại phổ biến cấp nước đô thị.",
+                    img: "https://xingxingpipe.com/images/products/ductile-iron-pipe.jpg"
                 },
                 "Van cổng": {
-                    name: "XingXing Resilient Seated Gate Valve",
-                    size: "DN50, DN65, DN80, DN100, DN125, DN150, DN200, DN250, DN300, DN400",
-                    pressure: "PN10 / PN16",
-                    specs: "• Tiêu chuẩn bích: DIN 2501 / BS 4504.<br>• Phủ sơn Epoxy tĩnh điện cả trong và ngoài dày ≥ 250 µm.",
-                    material: "Thân gang dẻo QT450-10, lá van bọc cao su NBR/EPDM, ty van Inox 304.",
-                    desc: "Van cổng ty chìm nắp bích thông dụng, chi phí hợp lý.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gate_valve.jpg/600px-Gate_valve.jpg"
+                    name: "XingXing Resilient Gate Valve",
+                    sizeTable: "DN50 - DN400 (PN10 / PN16)",
+                    specs: "Sơn tĩnh điện Epoxy xanh dày ≥ 250 µm.",
+                    material: "Gang dẻo QT450-10, lá van bọc cao su NBR/EPDM.",
+                    desc: "Van cổng ty chìm nắp bích.",
+                    img: "https://xingxingpipe.com/images/products/gate-valve.jpg"
                 },
                 "Van bướm": {
-                    name: "XingXing Wafer / Flanged Butterfly Valve",
-                    size: "DN50 - DN800",
-                    pressure: "PN10 / PN16",
-                    specs: "• Điều khiển: Tay gạt (DN50-DN150), Tay quay hộp số (DN200 trở lên).",
-                    material: "Thân gang đúc, đĩa van Inox SUS304 / Gang dẻo, gioăng EPDM.",
-                    desc: "Thiết kế nhỏ gọn, dễ dàng lắp đặt giữa hai mặt bích.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Butterfly_valve.jpg/600px-Butterfly_valve.jpg"
+                    name: "XingXing Wafer Butterfly Valve",
+                    sizeTable: "DN50 - DN800 (PN10 / PN16)",
+                    specs: "Kiểu kẹp Wafer hoặc 2 mặt bích.",
+                    material: "Thân gang đúc, đĩa Inox SUS304.",
+                    desc: "Van bướm tay gạt / tay quay.",
+                    img: "https://xingxingpipe.com/images/products/butterfly-valve.jpg"
                 },
                 "Van gai": {
-                    name: "XingXing Tapping Saddle Valve",
-                    size: "DN50 - DN200",
-                    pressure: "PN10",
-                    specs: "• Đai kẹp bu-lông 4 góc xiết chặt quanh thân ống.",
-                    material: "Gang dẻo bọc sơn Epoxy.",
-                    desc: "Chuyên xẻ rãnh lấy nước phân phối.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pipe_saddle_clamp.jpg/600px-Pipe_saddle_clamp.jpg"
+                    name: "XingXing Tapping Valve",
+                    sizeTable: "DN50 - DN200 (PN10)",
+                    specs: "Bắt đai ôm siết bu-lông.",
+                    material: "Gang dẻo bọc Epoxy.",
+                    desc: "Đai khởi thủy van gai.",
+                    img: "https://xingxingpipe.com/images/products/tapping-valve.jpg"
                 },
-                "Cút 90 độ": {
-                    name: "Cút gang 90° XingXing",
-                    size: "DN50 - DN400",
-                    pressure: "PN16",
-                    specs: "• Nối bích tiêu chuẩn BS / DIN.",
-                    material: "Gang dẻo phủ Epoxy.",
-                    desc: "Cút chuyển hướng 90 độ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
-                },
-                "Cút 45 độ": {
-                    name: "Cút gang 45° XingXing",
-                    size: "DN50 - DN400",
-                    pressure: "PN16",
-                    specs: "• Hai đầu mặt bích.",
-                    material: "Gang dẻo.",
-                    desc: "Cút bẻ góc 45 độ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
-                },
-                "Tê thuỷ lực": {
-                    name: "Tê gang XingXing",
-                    size: "DN50 - DN400",
-                    pressure: "PN16",
-                    specs: "• 3 đầu mặt bích.",
-                    material: "Gang dẻo.",
-                    desc: "Tê chia nhánh đường ống.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Pipe_fittings_ductile_iron.jpg/600px-Pipe_fittings_ductile_iron.jpg"
-                }
+                "Cút 90 độ": { name: "Cút gang 90° XingXing", sizeTable: "DN50 - DN400 (PN16)", specs: "Mặt bích BS/DIN.", material: "Gang dẻo.", desc: "Cút đổi hướng 90 độ.", img: "" },
+                "Cút 45 độ": { name: "Cút gang 45° XingXing", sizeTable: "DN50 - DN400 (PN16)", specs: "Mặt bích 2 đầu.", material: "Gang dẻo.", desc: "Cút bẻ góc 45 độ.", img: "" },
+                "Tê thuỷ lực": { name: "Tê gang XingXing", sizeTable: "DN50 - DN400 (PN16)", specs: "Chia ngả 3 mặt bích.", material: "Gang dẻo.", desc: "Tê chia nhánh.", img: "" }
             },
             "Europipe": {
                 "Đường ống chính": {
-                    name: "Ống nhựa HDPE Europipe PE100 / uPVC Europipe",
-                    size: "Đường kính ngoài OD (mm): Ø20, Ø25, Ø32, Ø40, Ø50, Ø63, Ø75, Ø90, Ø110, Ø125, Ø140, Ø160, Ø180, Ø200, Ø225, Ø250, Ø280, Ø315, Ø355, Ø400, Ø450, Ø500, Ø560, Ø630, Ø710, Ø800, Ø900, Ø1000, Ø1200mm",
-                    pressure: "Cấp tỷ lệ kích thước SDR26, SDR21, SDR17, SDR13.6, SDR11, SDR9 (Áp lực PN6, PN8, PN10, PN12.5, PN16, PN20, PN25)",
-                    specs: "• Quy cách đóng gói: Cuộn 50m-200m (cho Ø20-Ø90), Cây 6m hoặc 12m (cho Ø110 trở lên).<br>• Phương pháp nối: Hàn nhiệt đối đầu, Hàn điện trở (Electrofusion), Nối khớp siết Rắc-co cơ khí.<br>• Hệ số nhám Hazen-Williams: C = 150 (bề mặt cực nhẵn, ít tổn thất áp).",
-                    material: "Nhựa PE100 nguyên sinh nhập khẩu Bắc Âu. Chống tia cực tím (UV), không bị lão hóa bới hóa chất mặn phèn.",
-                    desc: "Tài sản đường ống nhựa dẻo dai cao, chống chấn động địa chất tốt, không bị cáu cặn trong lòng ống.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/HDPE_pipes_staked.jpg/800px-HDPE_pipes_staked.jpg"
+                    name: "Ống nhựa HDPE Europipe PE100",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Đường kính OD</th><th>Cấp SDR</th><th>Áp lực PN</th><th>Đóng gói</th></tr></thead>
+                        <tbody>
+                            <tr><td>Ø20 - Ø90mm</td><td>SDR11 - SDR17</td><td>PN10 - PN16</td><td>Cuộn 50m - 200m</td></tr>
+                            <tr><td>Ø110 - Ø500mm</td><td>SDR11 - SDR26</td><td>PN6 - PN16</td><td>Cây 6m - 12m</td></tr>
+                            <tr><td>Ø560 - Ø1200mm</td><td>SDR13.6 - SDR26</td><td>PN6 - PN12.5</td><td>Cây 6m - 12m</td></tr>
+                        </tbody>
+                    </table>`,
+                    specs: "• Hệ số Hazen-Williams: C = 150.<br>• Nối hàn nhiệt đối đầu / hàn điện trở Electrofusion.",
+                    material: "Nhựa PE100 nguyên sinh chống tia UV.",
+                    desc: "Ống nhựa HDPE dẻo dai, chống chấn động địa chất và phèn chua.",
+                    img: "https://europipe.com.vn/wp-content/uploads/2020/09/ong-nhua-hdpe-europipe.jpg"
                 },
-                "Van cổng": {
-                    name: "Europipe Flanged Gate Valve for HDPE",
-                    size: "DN50 - DN300",
-                    pressure: "PN10 / PN16",
-                    specs: "• Lắp kết hợp với đầu đệm stub-end HDPE và bích thép.",
-                    material: "Thân gang dẻo bọc Epoxy, bích đệm nhựa.",
-                    desc: "Van khóa chặn dòng trên tuyến ống nhựa HDPE chính.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gate_valve.jpg/600px-Gate_valve.jpg"
-                },
-                "Van bướm": {
-                    name: "Europipe Plastic Butterfly Valve (uPVC/PP-H)",
-                    size: "DN63 - DN225 (Ø63 - Ø225mm)",
-                    pressure: "PN10",
-                    specs: "• Tiêu chuẩn kết nối mặt bích DIN/BS.",
-                    material: "Thân nhựa uPVC/PP-H, đĩa nhựa, tay gạt.",
-                    desc: "Kháng hóa chất tuyệt đối, nhẹ nhàng dễ thi công.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Butterfly_valve.jpg/600px-Butterfly_valve.jpg"
-                },
-                "Van gai": {
-                    name: "Europipe HDPE Electrofusion Tapping Saddle",
-                    size: "Ø40 - Ø315mm (Đầu ra Ø20 - Ø63mm)",
-                    pressure: "PN10 / PN16",
-                    specs: "• Tích hợp mũi khoan gạt bên trong đai (Integral cutter).",
-                    material: "Nhựa PE100 tích hợp cuộn dây điện trở.",
-                    desc: "Hàn điện trở kín tuyệt đối vào thân ống HDPE đang vận hành để đấu nối hộ gia đình.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pipe_saddle_clamp.jpg/600px-Pipe_saddle_clamp.jpg"
-                },
-                "Cút 90 độ": {
-                    name: "Cút 90° HDPE Hàn / Đúc Europipe",
-                    size: "Ø20 - Ø800mm",
-                    pressure: "PN10 / PN16",
-                    specs: "• Nối hàn đối đầu hoặc hàn điện trở.",
-                    material: "Nhựa PE100.",
-                    desc: "Phụ kiện góc bẻ 90 độ nhựa HDPE.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/HDPE_pipes_staked.jpg/800px-HDPE_pipes_staked.jpg"
-                },
-                "Cút 45 độ": {
-                    name: "Cút 45° HDPE Europipe",
-                    size: "Ø50 - Ø630mm",
-                    pressure: "PN10 / PN16",
-                    specs: "• Hàn nhiệt nối đầu.",
-                    material: "Nhựa PE100.",
-                    desc: "Phụ kiện chuyển hướng 45 độ HDPE.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/HDPE_pipes_staked.jpg/800px-HDPE_pipes_staked.jpg"
-                },
-                "Tê thuỷ lực": {
-                    name: "Tê đều / Tê thu HDPE Europipe",
-                    size: "Ø20 - Ø800mm",
-                    pressure: "PN10 / PN16",
-                    specs: "• Tê đúc nguyên khối hoặc tê gia công hàn.",
-                    material: "Nhựa PE100.",
-                    desc: "Tê chia nhánh 3 hướng cho ống nhựa HDPE.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/HDPE_pipes_staked.jpg/800px-HDPE_pipes_staked.jpg"
-                }
+                "Van cổng": { name: "Europipe Gate Valve for HDPE", sizeTable: "DN50 - DN300 (PN10/PN16)", specs: "Kết hợp Stub-end HDPE.", material: "Gang bọc Epoxy.", desc: "Van cổng dùng cho tuyến HDPE.", img: "https://europipe.com.vn/wp-content/uploads/2020/09/van-cong.jpg" },
+                "Van bướm": { name: "Europipe Plastic Butterfly Valve", sizeTable: "DN63 - DN225 (PN10)", specs: "Thân nhựa uPVC / PP-H.", material: "Nhựa uPVC.", desc: "Van bướm nhựa chống ăn mòn.", img: "https://europipe.com.vn/wp-content/uploads/2020/09/van-buom-nhua.jpg" },
+                "Van gai": { name: "Europipe Electrofusion Saddle", sizeTable: "Ø40 - Ø315mm (Nhánh Ø20 - Ø63mm)", specs: "Tích hợp dao cắt/mũi khoan gai.", material: "Nhựa PE100 điện trở.", desc: "Đai khởi thủy hàn điện trở.", img: "https://europipe.com.vn/wp-content/uploads/2020/09/dai-khoi-thuy.jpg" },
+                "Cút 90 độ": { name: "Cút 90° HDPE Europipe", sizeTable: "Ø20 - Ø800mm (PN10/PN16)", specs: "Hàn đối đầu / Đúc.", material: "Nhựa PE100.", desc: "Co 90 độ HDPE.", img: "" },
+                "Cút 45 độ": { name: "Cút 45° HDPE Europipe", sizeTable: "Ø50 - Ø630mm (PN10/PN16)", specs: "Hàn nhiệt.", material: "Nhựa PE100.", desc: "Co 45 độ HDPE.", img: "" },
+                "Tê thuỷ lực": { name: "Tê HDPE Europipe", sizeTable: "Ø20 - Ø800mm", specs: "Tê đúc / Tê hàn.", material: "Nhựa PE100.", desc: "Tê chia nhánh HDPE.", img: "" }
             },
             "Tiền Phong": {
                 "Đường ống chính": {
-                    name: "Ống nhựa uPVC / HDPE / PPR Tiền Phong",
-                    size: "uPVC: Ø21, Ø27, Ø34, Ø42, Ø49, Ø60, Ø75, Ø90, Ø110, Ø140, Ø160, Ø200, Ø225, Ø250, Ø280, Ø315, Ø355, Ø400, Ø450, Ø500, Ø630mm.<br>HDPE: Ø20 - Ø1200mm.",
-                    pressure: "uPVC: PN4, PN6, PN8, PN10, PN12.5, PN16, PN25.<br>HDPE: PE80, PE100 (PN6 - PN20).",
-                    specs: "• Tiêu chuẩn chất lượng: ISO 1452:2009 (uPVC) / ISO 4427:2007 (HDPE).<br>• Quy cách: Cây 4m hoặc 6m (nối dán keo hoặc gioăng cao su NBR).<br>• Hệ số nhám Hazen-Williams: C = 145 - 150.",
-                    material: "Nhựa uPVC không hóa dẻo / Nhựa HDPE PE100.",
-                    desc: "Thương hiệu ống nước phổ biến nhất Việt Nam, được dùng rộng rãi trên các tuyến ống phân phối C2, C3 cấp nước đô thị.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
+                    name: "Ống nhựa uPVC / HDPE Tiền Phong",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Loại ống</th><th>Đường kính OD</th><th>Áp lực PN</th><th>Kiểu nối</th></tr></thead>
+                        <tbody>
+                            <tr><td>uPVC Tiền Phong</td><td>Ø21 - Ø630mm</td><td>PN4 - PN25</td><td>Dán keo / Nong gioăng</td></tr>
+                            <tr><td>HDPE Tiền Phong</td><td>Ø20 - Ø1200mm</td><td>PN6 - PN20</td><td>Hàn nhiệt đối đầu</td></tr>
+                        </tbody>
+                    </table>`,
+                    specs: "• Tiêu chuẩn: ISO 1452 (uPVC) / ISO 4427 (HDPE).<br>• Hệ số Hazen-Williams: C = 150.",
+                    material: "Nhựa uPVC / HDPE PE100 nguyên sinh.",
+                    desc: "Thương hiệu ống nước phổ biến nhất Việt Nam.",
+                    img: "https://nhuatienphong.vn/vnt_upload/product/05_2018/ong_upvc_tien_phong.jpg"
                 },
-                "Van cổng": {
-                    name: "Van cổng uPVC Tiền Phong",
-                    size: "DN50 - DN200 (Ø63 - Ø225mm)",
-                    pressure: "PN10",
-                    specs: "• Kết nối dán keo hoặc mặt bích nhựa.",
-                    material: "Nhựa uPVC cao cấp, đĩa van nhựa bọc EPDM.",
-                    desc: "Sử dụng đồng bộ tuyệt đối với các đường ống nhựa uPVC.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gate_valve.jpg/600px-Gate_valve.jpg"
-                },
-                "Van bướm": {
-                    name: "Van bướm tay gạt uPVC Tiền Phong",
-                    size: "DN50 - DN200 (Ø63 - Ø225mm)",
-                    pressure: "PN10",
-                    specs: "• Tay gạt khóa từng nấc điều tiết.",
-                    material: "Thân & đĩa nhựa uPVC, trục Inox.",
-                    desc: "Van bướm nhựa chống ăn mòn.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Butterfly_valve.jpg/600px-Butterfly_valve.jpg"
-                },
-                "Van gai": {
-                    name: "Đai khởi thủy uPVC / HDPE Tiền Phong",
-                    size: "Ø32 - Ø200mm (Nhánh Ø21 - Ø60mm)",
-                    pressure: "PN10",
-                    specs: "• Khóa xiết bằng bu-lông mạ kẽm/Inox.",
-                    material: "Nhựa uPVC / PE.",
-                    desc: "Bắt đai khoan lấy nước dịch vụ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pipe_saddle_clamp.jpg/600px-Pipe_saddle_clamp.jpg"
-                },
-                "Cút 90 độ": {
-                    name: "Co 90° uPVC Tiền Phong",
-                    size: "Ø21 - Ø500mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Nối dán keo hoặc gioăng cao su.",
-                    material: "Nhựa uPVC.",
-                    desc: "Cút vuông 90 độ uPVC.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                },
-                "Cút 45 độ": {
-                    name: "Co 45° (Lơi 45°) uPVC Tiền Phong",
-                    size: "Ø21 - Ø500mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Nối dán keo / gioăng.",
-                    material: "Nhựa uPVC.",
-                    desc: "Co lơi 45 độ bẻ góc chếch.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                },
-                "Tê thuỷ lực": {
-                    name: "Tê đều / Tê thu uPVC Tiền Phong",
-                    size: "Ø21 - Ø500mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Dán keo hoặc nối gioăng.",
-                    material: "Nhựa uPVC.",
-                    desc: "Ba ngả nối ống phân phối.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                }
+                "Van cổng": { name: "Van cổng uPVC Tiền Phong", sizeTable: "DN50 - DN200 (Ø63 - Ø225mm)", specs: "Nối dán keo hoặc bích nhựa.", material: "Nhựa uPVC.", desc: "Van cổng nhựa uPVC.", img: "https://nhuatienphong.vn/vnt_upload/product/05_2018/van_upvc.jpg" },
+                "Van bướm": { name: "Van bướm uPVC Tiền Phong", sizeTable: "DN50 - DN200 (PN10)", specs: "Tay gạt xoay chỉnh.", material: "Nhựa uPVC.", desc: "Van bướm nhựa tay gạt.", img: "" },
+                "Van gai": { name: "Đai khởi thủy Tiền Phong", sizeTable: "Ø32 - Ø200mm (Nhánh Ø21 - Ø60mm)", specs: "Kẹp bu-lông xiết.", material: "Nhựa uPVC.", desc: "Đai khởi thủy lấy nước.", img: "" },
+                "Cút 90 độ": { name: "Co 90° uPVC Tiền Phong", sizeTable: "Ø21 - Ø500mm", specs: "Dán keo / Nong gioăng.", material: "Nhựa uPVC.", desc: "Co vuông 90 độ.", img: "" },
+                "Cút 45 độ": { name: "Co 45° uPVC Tiền Phong", sizeTable: "Ø21 - Ø500mm", specs: "Dán keo / Nong gioăng.", material: "Nhựa uPVC.", desc: "Co lơi 45 độ.", img: "" },
+                "Tê thuỷ lực": { name: "Tê uPVC Tiền Phong", sizeTable: "Ø21 - Ø500mm", specs: "Tê đều / Tê thu.", material: "Nhựa uPVC.", desc: "Tê chia nhánh.", img: "" }
             },
             "Bình Minh": {
                 "Đường ống chính": {
-                    name: "Ống nhựa uPVC Bình Minh / PE (HDPE) Bình Minh",
-                    size: "uPVC: Ø21, Ø27, Ø34, Ø42, Ø49, Ø60, Ø75, Ø90, Ø110, Ø140, Ø160, Ø200, Ø225, Ø250, Ø280, Ø315, Ø355, Ø400, Ø450, Ø500, Ø630mm.<br>HDPE: Ø20 - Ø500mm.",
-                    pressure: "PN4, PN5, PN6, PN8, PN10, PN12.5, PN16, PN25",
-                    specs: "• Tiêu chuẩn sản xuất: TCVN 8491:2011 / ISO 1452:2009.<br>• Chiều dài tiêu chuẩn: Cây 4m hoặc 6m (Đầu nong dán keo hoặc đầu nong gắn gioăng cao su).<br>• Hệ số nhám Hazen-Williams: C = 150.",
-                    material: "Hợp chất nhựa uPVC không chứa chì (Heavy metal free), an toàn vệ sinh nước uống tuyệt đối.",
-                    desc: "Tài sản đường ống nhựa truyền thống chất lượng cao, bề mặt nhẵn bóng chống bám cáu cặn thủy lực.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
+                    name: "Ống nhựa uPVC / PE Bình Minh",
+                    sizeTable: `<table class="table table-sm table-bordered align-middle text-center mb-0" style="font-size:0.85rem;">
+                        <thead><tr><th>Chủng loại</th><th>Đường kính OD</th><th>Cấp áp lực</th><th>Liên kết</th></tr></thead>
+                        <tbody>
+                            <tr><td>uPVC Bình Minh</td><td>Ø21 - Ø630mm</td><td>PN4 - PN25</td><td>Dán keo / Đầu nong gioăng</td></tr>
+                            <tr><td>HDPE Bình Minh</td><td>Ø20 - Ø500mm</td><td>PN6 - PN20</td><td>Hàn nhiệt đối đầu</td></tr>
+                        </tbody>
+                    </table>`,
+                    specs: "• Tiêu chuẩn: TCVN 8491:2011 / ISO 1452:2009.<br>• Hệ số Hazen-Williams: C = 150.",
+                    material: "Hợp chất uPVC không chứa chì (Heavy metal free).",
+                    desc: "Tài sản đường ống nhựa uy tín lâu năm, an toàn vệ sinh nước sạch.",
+                    img: "https://www.binhminhplastic.com.vn/uploads/products/upvc_pipe.jpg"
                 },
-                "Van cổng": {
-                    name: "Van cổng uPVC Bình Minh",
-                    size: "DN25 - DN110 (Ø34 - Ø110mm)",
-                    pressure: "PN10 / PN16",
-                    specs: "• Kết nối dán keo trực tiếp.",
-                    material: "Nhựa uPVC.",
-                    desc: "Dùng cho đường ống nhánh phân phối nước sạch.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gate_valve.jpg/600px-Gate_valve.jpg"
-                },
-                "Van bướm": {
-                    name: "Van bướm uPVC Bình Minh",
-                    size: "DN50 - DN200",
-                    pressure: "PN10",
-                    specs: "• Điều khiển gạt phân nấc.",
-                    material: "Nhựa uPVC.",
-                    desc: "Van bướm đóng mở nhanh.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Butterfly_valve.jpg/600px-Butterfly_valve.jpg"
-                },
-                "Van gai": {
-                    name: "Đai khởi thủy van gai Bình Minh",
-                    size: "Ø63 - Ø160mm",
-                    pressure: "PN10",
-                    specs: "• Đai kẹp 2 nửa bu-lông.",
-                    material: "Nhựa uPVC / PE.",
-                    desc: "Đai trích xuất nước hộ gia đình.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pipe_saddle_clamp.jpg/600px-Pipe_saddle_clamp.jpg"
-                },
-                "Cút 90 độ": {
-                    name: "Co 90° uPVC Bình Minh",
-                    size: "Ø21 - Ø315mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Nối dán keo.",
-                    material: "Nhựa uPVC.",
-                    desc: "Co vuông 90 độ uPVC.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                },
-                "Cút 45 độ": {
-                    name: "Co 45° uPVC Bình Minh",
-                    size: "Ø21 - Ø315mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Nối dán keo.",
-                    material: "Nhựa uPVC.",
-                    desc: "Co lơi bẻ góc 45 độ.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                },
-                "Tê thuỷ lực": {
-                    name: "Tê uPVC Bình Minh",
-                    size: "Ø21 - Ø315mm",
-                    pressure: "PN6 - PN16",
-                    specs: "• Nối dán keo.",
-                    material: "Nhựa uPVC.",
-                    desc: "Tê chia ngả uPVC.",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/PVC_pipes_01.jpg/800px-PVC_pipes_01.jpg"
-                }
+                "Van cổng": { name: "Van cổng uPVC Bình Minh", sizeTable: "DN25 - DN110 (Ø34 - Ø110mm)", specs: "Kết nối dán keo trực tiếp.", material: "Nhựa uPVC.", desc: "Dùng cho đường ống nhánh phân phối.", img: "https://www.binhminhplastic.com.vn/uploads/products/van_upvc.jpg" },
+                "Van bướm": { name: "Van bướm uPVC Bình Minh", sizeTable: "DN50 - DN200 (PN10)", specs: "Điều khiển gạt phân nấc.", material: "Nhựa uPVC.", desc: "Van bướm đóng mở nhanh.", img: "" },
+                "Van gai": { name: "Đai khởi thủy van gai Bình Minh", sizeTable: "Ø63 - Ø160mm", specs: "Đai kẹp 2 nửa bu-lông.", material: "Nhựa uPVC / PE.", desc: "Đai trích xuất nước hộ gia đình.", img: "" },
+                "Cút 90 độ": { name: "Co 90° uPVC Bình Minh", sizeTable: "Ø21 - Ø315mm", specs: "Nối dán keo.", material: "Nhựa uPVC.", desc: "Co vuông 90 độ uPVC.", img: "" },
+                "Cút 45 độ": { name: "Co 45° uPVC Bình Minh", sizeTable: "Ø21 - Ø315mm", specs: "Nối dán keo.", material: "Nhựa uPVC.", desc: "Co lơi bẻ góc 45 độ.", img: "" },
+                "Tê thuỷ lực": { name: "Tê uPVC Bình Minh", sizeTable: "Ø21 - Ø315mm", specs: "Nối dán keo.", material: "Nhựa uPVC.", desc: "Tê chia ngả uPVC.", img: "" }
             }
         };
+
+        // Hàm tự động xử lý khi link ảnh từ nhà sản xuất bị chặn/lỗi
+        function handleImageError(imageElement) {
+            imageElement.onerror = null; 
+            imageElement.src = SVG_FALLBACK;
+        }
 
         function updateAssetInfo() {
             const brand = document.getElementById('brandSelect').value;
@@ -421,23 +291,27 @@
             const brandData = assetDatabase[brand] || {};
             const data = brandData[category] || {
                 name: "Đang cập nhật dữ liệu",
-                size: "Theo tiêu chuẩn kỹ thuật",
-                pressure: "PN10 / PN16",
-                specs: "Thông số nhà sản xuất đang được bổ sung.",
+                sizeTable: "Thông số đường kính đang được cập nhật.",
+                specs: "Thông số nhà sản xuất đang bổ sung.",
                 material: "Vật liệu tiêu chuẩn",
-                desc: "Dữ liệu chi tiết đang được cập nhật.",
-                img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Ductile_iron_pipe_staked.jpg/800px-Ductile_iron_pipe_staked.jpg"
+                desc: "Dữ liệu đang được cập nhật.",
+                img: ""
             };
             
             document.getElementById('displayTitle').innerText = `${category} - ${brand}`;
             document.getElementById('assetCategoryBadge').innerText = category;
             document.getElementById('astName').innerText = data.name;
-            document.getElementById('astSize').innerText = data.size;
-            document.getElementById('astPressure').innerText = data.pressure;
+            document.getElementById('astSizeTable').innerHTML = data.sizeTable;
             document.getElementById('astSpecs').innerHTML = data.specs;
             document.getElementById('astMaterial').innerText = data.material;
             document.getElementById('astDesc').innerText = data.desc;
-            document.getElementById('astImg').src = data.img;
+            
+            const imgElement = document.getElementById('astImg');
+            if (data.img && data.img.trim() !== "") {
+                imgElement.src = data.img;
+            } else {
+                imgElement.src = SVG_FALLBACK;
+            }
             document.getElementById('imgCaption').innerText = `Thiết bị thực tế: ${data.name}`;
         }
 
