@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu Tài sản Mạng lưới Cấp nước & Phụ kiện</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .header-bg { background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; padding: 2rem 0; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; }
+        .asset-img { max-height: 300px; object-fit: cover; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        .spec-item { padding: 10px 0; border-bottom: 1px dashed #dee2e6; }
+        .spec-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header-bg text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">🚰 Tra Cứu Tài Sản Đường Ống & Phụ Kiện Cấp Nước</h1>
+            <p class="lead mb-0">Hệ thống thông số kỹ thuật, vật liệu và hình ảnh tài sản các hãng: Ponta Mousson, Xing Xing, Europipe, Tiền Phong, Bình Minh</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <!-- Bộ lọc lựa chọn -->
+        <div class="card p-4 mb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="brandSelect" class="form-label fw-bold text-primary">🏢 Lựa chọn Hãng sản xuất / Thương hiệu:</label>
+                    <select id="brandSelect" class="form-select form-select-lg" onchange="updateAssetInfo()">
+                        <option value="Ponta Mousson">Ponta Mousson (PAM - Pháp / Gang dẻo)</option>
+                        <option value="Xing Xing">Xing Xing (Trung Quốc / Gang & Phụ kiện)</option>
+                        <option value="Europipe">Europipe (Thụy Sĩ / Việt Nam - Nhựa HDPE)</option>
+                        <option value="Tiền Phong">Nhựa Tiền Phong (Việt Nam - uPVC / HDPE)</option>
+                        <option value="Bình Minh">Nhựa Bình Minh (Việt Nam - uPVC / PE)</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="categorySelect" class="form-label fw-bold text-primary">⚙️ Lựa chọn Loại tài sản (Ống & Phụ kiện):</label>
+                    <select id="categorySelect" class="form-select form-select-lg" onchange="updateAssetInfo()">
+                        <optgroup label="Đường ống cấp nước">
+                            <option value="Đường ống chính">Đường ống chính (Pipeline)</option>
+                        </optgroup>
+                        <optgroup label="Nhóm Van kỹ thuật">
+                            <option value="Van cổng">Van cổng (Gate Valve)</option>
+                            <option value="Van bướm">Van bướm (Butterfly Valve)</option>
+                            <option value="Van gai">Van gai / Đai khởi thủy (Tapping Saddle)</option>
+                        </optgroup>
+                        <optgroup label="Nhóm Phụ kiện đường ống (Fittings)">
+                            <option value="Cút 90 độ">Cút góc 90° (Elbow 90°)</option>
+                            <option value="Cút 45 độ">Cút góc 45° (Elbow 45°)</option>
+                            <option value="Tê thuỷ lực">Tê phân nhánh (Tee Branch)</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khu vực hiển thị thông tin chi tiết tài sản -->
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center pb-3 border-bottom">
+                <h3 id="displayTitle" class="text-secondary m-0">Thông tin chi tiết tài sản</h3>
+                <span id="assetCategoryBadge" class="badge bg-info text-dark fs-6">--</span>
+            </div>
+            
+            <div class="row align-items-center mt-3">
+                <div class="col-lg-7">
+                    <div class="spec-item"><strong>Tên hiệu / Model:</strong> <span id="astName" class="badge bg-success fs-6">--</span></div>
+                    <div class="spec-item"><strong>Quy cách / Đường kính:</strong> <span id="astSize" class="text-dark fw-semibold">--</span></div>
+                    <div class="spec-item"><strong>Áp lực làm việc / Tiêu chuẩn:</strong> <span id="astPressure" class="text-dark fw-semibold">--</span></div>
+                    <div class="spec-item"><strong>Vật liệu cấu tạo & Đặc tính:</strong> <span id="astMaterial" class="text-dark fw-semibold">--</span></div>
+                    <div class="spec-item"><strong>Mô tả chi tiết & Ứng dụng:</strong> <p id="astDesc" class="mt-1 mb-0 text-muted">--</p></div>
+                </div>
+                <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                    <img id="astImg" src="" alt="Hình ảnh tài sản" class="asset-img img-fluid shadow-sm">
+                    <p id="imgCaption" class="text-muted small mt-2 fst-italic">Hình ảnh minh họa thực tế</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cơ sở dữ liệu JavaScript toàn diện cho các hãng -->
+    <script>
+        const assetDatabase = {
+            "Ponta Mousson": {
+                "Đường ống chính": {
+                    name: "Ống gang dẻo PAM (Ductile Iron Pipe - DIP)", size: "DN100 - DN2000", pressure: "PN16 / PN25 / PN40",
+                    material: "Gang dẻo, lớp lót vữa xi măng bên trong, phủ kẽm + sơn Epoxy bên ngoài. Hệ số Hazen-Williams C = 130",
+                    desc: "Đường ống chịu lực siêu bền chuyên dùng cho các tuyến ống truyền tải nước sạch chính áp lực cao.",
+                    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van cổng": {
+                    name: "Euro 20 / Euro 24 (Van cổng ty chìm)", size: "DN50 - DN600", pressure: "PN10 / PN16 / PN25",
+                    material: "Gang dẻo, lá van bọc cao su EPDM toàn phần, ty Inox",
+                    desc: "Đóng mở kín khít bằng tay quay vô-lăng, chuyên lắp trên tuyến ống truyền tải gang dẻo.",
+                    img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van bướm": {
+                    name: "Eurostop / Klipse (Van bướm mặt bích)", size: "DN150 - DN2000", pressure: "PN10 / PN16",
+                    material: "Thân gang dẻo, đĩa lệch tâm đôi, gioăng EPDM",
+                    desc: "Vận hành bằng hộp số vô-lăng, điều tiết dòng chảy lưu lượng lớn tại nhà máy và trạm bơm.",
+                    img: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van gai": {
+                    name: "PAM Tapping Saddle with Valve", size: "DN50 - DN300", pressure: "PN16",
+                    material: "Gang dẻo đúc nguyên khối ôm ống",
+                    desc: "Đai khởi thủy kèm van khoan gai chuyên dụng lấy nước trực tiếp trên ống gang đang có áp.",
+                    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 90 độ": {
+                    name: "Cút gang dẻo 90° (DIP 90° Bend)", size: "DN80 - DN1000", pressure: "PN16 / PN25",
+                    material: "Gang dẻo kết nối mặt bích hoặc ngàm Tyton",
+                    desc: "Thay đổi hướng dòng chảy vuông góc 90 độ trên tuyến ống chính chịu áp lực cao.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 45 độ": {
+                    name: "Cút gang dẻo 45° (DIP 45° Bend)", size: "DN80 - DN1000", pressure: "PN16 / PN25",
+                    material: "Gang dẻo tiêu chuẩn ISO 2531",
+                    desc: "Chuyển hướng góc 45 độ giúp giảm tổn thất thủy lực và tránh các chướng ngại vật ngầm.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Tê thuỷ lực": {
+                    name: "Tê gang dẻo đều/thu (DIP Tee)", size: "DN80 - DN800", pressure: "PN16 / PN25",
+                    material: "Gang dẻo đúc bích ba mặt",
+                    desc: "Phụ kiện phân nhánh mạng lưới đường ống cấp nước chính cực kỳ vững chắc.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                }
+            },
+            "Xing Xing": {
+                "Đường ống chính": {
+                    name: "Ống thép tráng kẽm / Gang công nghiệp XingXing", size: "DN50 - DN500", pressure: "PN10 / PN16",
+                    material: "Thép carbon / Gang xám sơn phủ Epoxy chống ăn mòn",
+                    desc: "Dùng trong trạm xử lý nước và các tuyến ống công nghiệp áp lực.",
+                    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van cổng": {
+                    name: "XingXing Resilient Gate Valve", size: "DN50 - DN400", pressure: "PN10 / PN16",
+                    material: "Gang dẻo, sơn Epoxy tĩnh điện >= 250 µm",
+                    desc: "Ty van Inox chống gỉ, lá van bọc cao su kín tuyệt đối.",
+                    img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van bướm": {
+                    name: "XingXing Wafer Butterfly Valve", size: "DN50 - DN800", pressure: "PN10 / PN16",
+                    material: "Thân gang, đĩa Inox 304, tay gạt/hộp số",
+                    desc: "Kiểu kẹp Wafer linh hoạt, dễ lắp đặt và thay thế.",
+                    img: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van gai": {
+                    name: "XingXing Tapping Valve", size: "DN50 - DN200", pressure: "PN10",
+                    material: "Gang kẹp bulông cường độ cao",
+                    desc: "Van tích hợp đai khởi thủy trích xuất nhánh phụ.",
+                    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 90 độ": {
+                    name: "Cút gang 90° XingXing", size: "DN50 - DN400", pressure: "PN16",
+                    material: "Gang đúc phủ Epoxy",
+                    desc: "Phụ kiện đổi hướng dòng chảy 90 độ.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 45 độ": {
+                    name: "Cút gang 45° XingXing", size: "DN50 - DN400", pressure: "PN16",
+                    material: "Gang đúc",
+                    desc: "Phụ kiện đổi hướng góc nhẹ 45 độ.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Tê thuỷ lực": {
+                    name: "Tê gang XingXing", size: "DN50 - DN400", pressure: "PN16",
+                    material: "Gang đúc mặt bích",
+                    desc: "Chia ngả đường ống phân phối nước.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                }
+            },
+            "Europipe": {
+                "Đường ống chính": {
+                    name: "Ống nhựa HDPE Europipe (PE100)", size: "Ø20 - Ø1200mm", pressure: "PN6 - PN25",
+                    material: "Nhựa nguyên sinh PE100 cao cấp. Hệ số Hazen-Williams C = 150",
+                    desc: "Độ bền trên 50 năm, không bị ăn mòn bởi hóa chất, phèn chua hay nước biển, chuyên dùng cấp nước đô thị.",
+                    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van cổng": {
+                    name: "Europipe Flanged Gate Valve", size: "DN50 - DN300", pressure: "PN10 / PN16",
+                    material: "Thân gang tích hợp đệm bích HDPE",
+                    desc: "Kết nối đồng bộ hoàn hảo với hệ thống đầu ống HDPE.",
+                    img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van bướm": {
+                    name: "Europipe Plastic Butterfly Valve", size: "DN63 - DN225", pressure: "PN10",
+                    material: "Nhựa uPVC / PP-H chống ăn mòn",
+                    desc: "Trọng lượng nhẹ, chuyên dùng trong hệ thống xử lý nước hóa chất.",
+                    img: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van gai": {
+                    name: "Europipe HDPE Tapping Saddle", size: "Ø32 - Ø110", pressure: "PN10 / PN16",
+                    material: "Nhựa HDPE hàn nhiệt/kẹp cơ khí",
+                    desc: "Đai khởi thủy tích hợp van khóa nhanh đấu nối ống nhánh.",
+                    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 90 độ": {
+                    name: "Cút hàn điện/phụ kiện hàn HDPE 90°", size: "Ø20 - Ø800mm", pressure: "PN10 / PN16",
+                    material: "Nhựa PE100 nguyên sinh",
+                    desc: "H hàn đối đầu hoặc hàn điện trở đổi hướng ống HDPE 90 độ kín tuyệt đối.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 45 độ": {
+                    name: "Cút hàn HDPE 45°", size: "Ø50 - Ø630mm", pressure: "PN10 / PN16",
+                    material: "Nhựa PE100",
+                    desc: "Đổi hướng tuyến ống HDPE góc 45 độ.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Tê thuỷ lực": {
+                    name: "Tê đều / Tê thu HDPE", size: "Ø20 - Ø800mm", pressure: "PN10 / PN16",
+                    material: "Nhựa PE100",
+                    desc: "Phụ kiện tê hàn phân nhánh mạng lưới ống HDPE.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                }
+            },
+            "Tiền Phong": {
+                "Đường ống chính": {
+                    name: "Ống nhựa uPVC & HDPE Tiền Phong", size: "Ø21 - Ø1000mm", pressure: "PN6 - PN16",
+                    material: "Nhựa uPVC / HDPE chất lượng cao. Hệ số C = 150",
+                    desc: "Thương hiệu quốc gia phổ biến hàng đầu trong mạng lưới phân phối cấp nước sạch đô thị và nông thôn.",
+                    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van cổng": {
+                    name: "Van cổng uPVC Tiền Phong", size: "DN50 - DN200", pressure: "PN10",
+                    material: "Nhựa uPVC nguyên sinh",
+                    desc: "Đồng bộ hoàn toàn với hệ thống ống nhựa uPVC của hãng.",
+                    img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van bướm": {
+                    name: "Van bướm tay gạt uPVC Tiền Phong", size: "DN50 - DN200 (Ø63 - Ø225)", pressure: "PN10",
+                    material: "Nhựa uPVC, gioăng EPDM",
+                    desc: "Tay gạt xoay điều chỉnh góc mở linh hoạt, không bám cặn.",
+                    img: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van gai": {
+                    name: "Đai khởi thủy kim gai Tiền Phong", size: "Ø32 - Ø200 (Nhánh Ø21 - Ø60)", pressure: "PN10",
+                    material: "Nhựa uPVC kết hợp kẹp inox",
+                    desc: "Giải pháp trích xuất nước nhánh từ ống uPVC nhanh chóng.",
+                    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 90 độ": {
+                    name: "Co 90° (Cút 90°) uPVC Tiền Phong", size: "Ø21 - Ø400mm", pressure: "PN10 / PN16",
+                    material: "Nhựa uPVC dán keo / nối ron",
+                    desc: "Phụ kiện nối góc vuông 90 độ thông dụng cho mạng lưới ống uPVC.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 45 độ": {
+                    name: "Co 45° (Cút 45°) uPVC Tiền Phong", size: "Ø21 - Ø400mm", pressure: "PN10",
+                    material: "Nhựa uPVC",
+                    desc: "Chuyển hướng góc 45 độ cho đường ống uPVC.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Tê thuỷ lực": {
+                    name: "Tê đều / Tê thu uPVC Tiền Phong", size: "Ø21 - Ø400mm", pressure: "PN10",
+                    material: "Nhựa uPVC",
+                    desc: "Phụ kiện phân nhánh đường ống cấp nước dân dụng.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                }
+            },
+            "Bình Minh": {
+                "Đường ống chính": {
+                    name: "Ống nhựa uPVC Bình Minh", size: "Ø21 - Ø630mm", pressure: "PN6 - PN16",
+                    material: "Nhựa uPVC hóa dẻo cao cấp. Hệ số C = 150",
+                    desc: "Chất lượng uy tín lâu năm, hệ số ma sát nhỏ, chống bám rêu và chịu áp lực cao cho cấp nước.",
+                    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van cổng": {
+                    name: "Van cửa / Van cổng uPVC Bình Minh", size: "DN25 - DN110 (Ø34 - Ø110)", pressure: "PN10 / PN16",
+                    material: "Nhựa uPVC",
+                    desc: "Thích hợp cho mạng lưới phân phối cấp nước vừa và nhỏ.",
+                    img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van bướm": {
+                    name: "Van bướm uPVC Bình Minh", size: "DN50 - DN200", pressure: "PN10",
+                    material: "Nhựa uPVC",
+                    desc: "Tay gạt có vạch chia độ mở giúp điều tiết lưu lượng trực quan.",
+                    img: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80"
+                },
+                "Van gai": {
+                    name: "Đai khởi thủy van gai Bình Minh", size: "Ø63 - Ø160", pressure: "PN10",
+                    material: "Nhựa uPVC / PE",
+                    desc: "Đai kẹp gắn van gai trích xuất nước cho hộ tiêu thụ.",
+                    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 90 độ": {
+                    name: "Co 90° uPVC Bình Minh", size: "Ø21 - Ø315mm", pressure: "PN10 / PN16",
+                    material: "Nhựa uPVC",
+                    desc: "Co nối góc 90 độ dán keo chuyên dụng Bình Minh.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Cút 45 độ": {
+                    name: "Co 45° uPVC Bình Minh", size: "Ø21 - Ø315mm", pressure: "PN10",
+                    material: "Nhựa uPVC",
+                    desc: "Co chuyển hướng 45 độ Bình Minh.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                },
+                "Tê thuỷ lực": {
+                    name: "Tê uPVC Bình Minh", size: "Ø21 - Ø315mm", pressure: "PN10",
+                    material: "Nhựa uPVC",
+                    desc: "Tê đều và tê thu phân nhánh đường ống cấp nước.",
+                    img: "https://images.unsplash.com/photo-1541888946425-d0fbb18f724c?auto=format&fit=crop&w=600&q=80"
+                }
+            }
+        };
+
+        function updateAssetInfo() {
+            const brand = document.getElementById('brandSelect').value;
+            const category = document.getElementById('categorySelect').value;
+            
+            // Lấy dữ liệu theo hãng và loại tài sản, nếu chưa có thì lấy thông tin mặc định chống lỗi
+            const brandData = assetDatabase[brand] || {};
+            const data = brandData[category] || {
+                name: "Đang cập nhật dữ liệu riêng cho mục này",
+                size: "Tiêu chuẩn ngành nước",
+                pressure: "PN10 / PN16",
+                material: "Vật liệu tiêu chuẩn kỹ thuật cấp nước",
+                desc: "Thông tin chi tiết tài sản đang được bổ sung vào cơ sở dữ liệu hệ thống.",
+                img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80"
+            };
+            
+            document.getElementById('displayTitle').innerText = `${category} - ${brand}`;
+            document.getElementById('assetCategoryBadge').innerText = category;
+            document.getElementById('astName').innerText = data.name;
+            document.getElementById('astSize').innerText = data.size;
+            document.getElementById('astPressure').innerText = data.pressure;
+            document.getElementById('astMaterial').innerText = data.material;
+            document.getElementById('astDesc').innerText = data.desc;
+            document.getElementById('astImg').src = data.img;
+            document.getElementById('imgCaption').innerText = `Thiết bị thực tế: ${data.name}`;
+        }
+
+        // Khởi chạy khi load trang lần đầu
+        window.onload = updateAssetInfo;
+    </script>
+</body>
+</html>
